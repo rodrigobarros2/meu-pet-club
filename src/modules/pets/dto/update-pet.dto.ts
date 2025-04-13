@@ -48,4 +48,13 @@ export class UpdatePetDto {
   @Min(0)
   @IsOptional()
   weight?: number;
+
+  @ApiProperty({
+    description: 'Descrição adicional do pet',
+    example: 'Dócil e brincalhão',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  description?: string;
 }

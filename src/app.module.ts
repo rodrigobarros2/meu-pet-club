@@ -11,7 +11,10 @@ import { RedisModule } from './modules/redis/redis.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev',
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -19,21 +22,23 @@ import { RedisModule } from './modules/redis/redis.module';
       }),
       inject: [ConfigService],
     }),
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: 60000,
-          limit: 10,
-        },
-      ],
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            ttl: config.get('THROTTLE_TTL') ? parseInt(config.get('THROTTLE_TTL')!) : 60000,
+            limit: config.get('THROTTLE_LIMIT') ? parseInt(config.get('THROTTLE_LIMIT')!) : 10,
+          },
+        ],
+      }),
     }),
     RedisModule,
     AuthModule,
     UsersModule,
     EmailModule,
-    EmailModule,
     PetsModule,
-    RedisModule,
   ],
 
   providers: [

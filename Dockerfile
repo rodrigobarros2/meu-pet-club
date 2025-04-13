@@ -1,15 +1,16 @@
-FROM node:slim
+FROM node:23-slim
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+COPY yarn.lock ./
 
-RUN npm install
+RUN yarn install --frozen-lockfile
 
 COPY . .
 
-RUN npm run build
+RUN yarn build
 
-EXPOSE 3000
+EXPOSE 4000
 
 CMD ["node", "dist/main"]

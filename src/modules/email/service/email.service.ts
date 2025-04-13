@@ -36,7 +36,7 @@ export class EmailService {
 
   async sendWelcomeEmail(to: string, name: string, password: string): Promise<boolean> {
     try {
-      const templatePath = path.join(__dirname, 'templates', 'welcome.hbs');
+      const templatePath = path.resolve(__dirname, '../templates/welcome.hbs');
       const templateSource = fs.readFileSync(templatePath, 'utf-8');
       const template = handlebars.compile(templateSource);
 

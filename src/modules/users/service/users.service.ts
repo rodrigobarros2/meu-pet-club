@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { EmailService } from '../../email/service/email.service';
 import { RedisService } from '../../redis/service/redis.service';
+import { CreateUserDto } from '../dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +15,7 @@ export class UsersService {
     private redisService: RedisService,
   ) {}
 
-  async create(data: any): Promise<{ name: string; email: string; role: string }> {
+  async create(data: CreateUserDto): Promise<{ name: string; email: string; role: string }> {
     // Verificar se o email já existe
     const existingUser = await this.userModel.findOne({ email: data.email }).exec();
     if (existingUser) {
@@ -96,10 +97,8 @@ export class UsersService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDocument | null> {
-    // Buscar diretamente do banco de dados, sem usar cache
-    // para garantir que recebemos um documento Mongoose completo
-    return this.userModel.findOne({ email }).exec();
+  async findByEmail(email: string) {
+    return this.userModel.findOne({ email }).select('+password').exec();
   }
 
   async findByRole(role: string): Promise<User[]> {

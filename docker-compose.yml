@@ -6,21 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '4000:3000'
+    env_file:
+      - .env.prod
+
     environment:
       - NODE_ENV=production
-      - MONGODB_URI=mongodb://mongodb:27017/pet-club
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=1d
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_SECURE=${EMAIL_SECURE}
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASS=${EMAIL_PASS}
-      - EMAIL_FROM=${EMAIL_FROM}
-      - CLIENT_URL=${CLIENT_URL}
     depends_on:
       - mongodb
       - redis
@@ -37,16 +28,6 @@ services:
       - mongodb_data:/data/db
     restart: unless-stopped
 
-  mongodb-test:
-    image: mongo:5
-    ports:
-      - '27018:27017'
-    environment:
-      MONGO_INITDB_DATABASE: meu-pet-club-test
-    volumes:
-      - mongodb_test_data:/data/db
-    restart: unless-stopped
-
   redis:
     image: redis:alpine
     ports:
@@ -57,5 +38,4 @@ services:
 
 volumes:
   mongodb_data:
-  mongodb_test_data:
   redis_data:

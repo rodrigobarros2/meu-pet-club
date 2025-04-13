@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { isValidObjectId, Model } from 'mongoose';
 import { Pet, PetDocument } from '../schemas/pet.schema';
 import { CreatePetDto } from '../dto/create-pet.dto';
 import { UpdatePetDto } from '../dto/update-pet.dto';
@@ -44,7 +44,8 @@ export class PetsService {
     if (role === UserRole.ADMIN) {
       pets = await this.petModel.find().populate('owner', 'name email').exec();
     } else {
-      pets = await this.petModel.find({ owner: userId }).exec();
+      // Adicionado populate também para usuários normais
+      pets = await this.petModel.find({ owner: userId }).populate('owner', 'name email').exec();
     }
 
     // Armazenar no cache
@@ -54,13 +55,15 @@ export class PetsService {
   }
 
   async findOne(id: string, userId: string, role: string): Promise<Pet> {
-    // Gerar chave de cache
+    // Validar formato do ID primeiro
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`ID inválido: ${id} não é um ObjectId válido`);
+    }
+
     const cacheKey = `pet:${id}`;
 
-    // Tentar obter do cache
     const cachedPet = await this.redisService.get<Pet>(cacheKey);
     if (cachedPet) {
-      // Ainda precisa verificar permissões mesmo para pets em cache
       if (
         role !== UserRole.ADMIN &&
         cachedPet.owner &&
@@ -90,14 +93,30 @@ export class PetsService {
     return pet;
   }
 
+  // Vamos modificar o método update para garantir que a verificação
+  // de permissão está sendo feita corretamente
   async update(id: string, updatePetDto: UpdatePetDto, userId: string, role: string): Promise<Pet> {
-    // Verificar primeiro se o pet existe e pertence ao usuário
-    await this.findOne(id, userId, role);
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`ID inválido: ${id} não é um ObjectId válido`);
+    }
 
+    // Buscar o pet primeiro para verificação de permissão
+    const pet = await this.petModel.findById(id).populate('owner', '_id').exec();
+
+    if (!pet) {
+      throw new NotFoundException(`Pet com ID ${id} não encontrado`);
+    }
+
+    // Verificação de permissão explícita, exatamente como no método remove
+    if (role !== UserRole.ADMIN && pet.owner && pet.owner._id && pet.owner._id.toString() !== userId) {
+      throw new ForbiddenException('Você não tem permissão para atualizar este pet');
+    }
+
+    // Atualizar o pet
     const updatedPet = await this.petModel.findByIdAndUpdate(id, updatePetDto, { new: true }).exec();
 
     if (!updatedPet) {
-      throw new NotFoundException(`Pet com ID ${id} não encontrado`);
+      throw new NotFoundException(`Pet com ID ${id} não encontrado para atualização`);
     }
 
     // Invalidar caches relacionados
@@ -108,13 +127,27 @@ export class PetsService {
   }
 
   async remove(id: string, userId: string, role: string): Promise<Pet> {
-    // Verificar primeiro se o pet existe e pertence ao usuário
-    await this.findOne(id, userId, role);
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException(`ID inválido: ${id} não é um ObjectId válido`);
+    }
 
+    // Buscar o pet para verificar permissões
+    const pet = await this.petModel.findById(id).populate('owner', '_id').exec();
+
+    if (!pet) {
+      throw new NotFoundException(`Pet com ID ${id} não encontrado`);
+    }
+
+    // Verificação de permissão explícita
+    if (role !== UserRole.ADMIN && pet.owner && pet.owner._id && pet.owner._id.toString() !== userId) {
+      throw new ForbiddenException('Você não tem permissão para excluir este pet');
+    }
+
+    // Excluir o pet
     const deletedPet = await this.petModel.findByIdAndDelete(id).exec();
 
     if (!deletedPet) {
-      throw new NotFoundException(`Pet com ID ${id} não encontrado`);
+      throw new NotFoundException(`Pet com ID ${id} não encontrado para exclusão`);
     }
 
     // Invalidar caches relacionados
