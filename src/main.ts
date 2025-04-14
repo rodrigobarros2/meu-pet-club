@@ -7,11 +7,7 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use(
-    helmet({
-      crossOriginOpenerPolicy: false, // Desativa COOP temporariamente
-    }),
-  );
+  app.use(helmet());
   app.enableCors();
 
   app.useGlobalPipes(
