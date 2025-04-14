@@ -22,30 +22,23 @@ export class UsersService {
       throw new ConflictException('Email já está registrado');
     }
 
-    // Salvar a senha original para enviar por email
     const originalPassword = data.password;
 
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // Criar novo usuário
     const createdUser = new this.userModel({
       ...data,
       password: hashedPassword,
     });
 
-    // Salvar usuário
     const savedUser = await createdUser.save();
 
-    // Enviar email com credenciais
     try {
       await this.emailService.sendWelcomeEmail(savedUser.email, savedUser.name, originalPassword);
     } catch (error) {
       console.error('Erro ao enviar email:', error);
-      // Não interrompe o fluxo se o email falhar
     }
 
-    // Invalidar caches relacionados a usuários
     await this.redisService.delByPattern('users:*');
 
     return {
@@ -56,42 +49,34 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    // Chave de cache para lista de usuários
     const cacheKey = 'users:all';
 
-    // Tentar obter do cache
     const cachedUsers = await this.redisService.get<User[]>(cacheKey);
     if (cachedUsers) {
       return cachedUsers;
     }
 
-    // Se não há cache, buscar do banco de dados
-    const users = await this.userModel.find().select('-password').exec();
+    const users = await this.userModel.find().exec();
 
-    // Armazenar no cache
     await this.redisService.set(cacheKey, users);
 
     return users;
   }
 
   async findById(id: string): Promise<User | null> {
-    // Chave de cache para usuário específico
     const cacheKey = `user:id:${id}`;
 
-    // Tentar obter do cache
     const cachedUser = await this.redisService.get<User>(cacheKey);
     if (cachedUser) {
       return cachedUser;
     }
 
-    // Se não há cache, buscar do banco de dados
     const user = await this.userModel.findById(id).select('-password').exec();
 
     if (!user) {
       return null;
     }
 
-    // Armazenar no cache
     await this.redisService.set(cacheKey, user);
 
     return user;
@@ -102,19 +87,15 @@ export class UsersService {
   }
 
   async findByRole(role: string): Promise<User[]> {
-    // Chave de cache para usuários por papel
     const cacheKey = `users:role:${role}`;
 
-    // Tentar obter do cache
     const cachedUsers = await this.redisService.get<User[]>(cacheKey);
     if (cachedUsers) {
       return cachedUsers;
     }
 
-    // Se não há cache, buscar do banco de dados
     const users = await this.userModel.find({ role }).select('-password').exec();
 
-    // Armazenar no cache
     await this.redisService.set(cacheKey, users);
 
     return users;

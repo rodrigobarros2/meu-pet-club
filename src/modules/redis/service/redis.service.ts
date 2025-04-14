@@ -12,10 +12,10 @@ export class RedisService implements OnModuleDestroy {
     this.redisClient = new Redis({
       host: this.configService.get<string>('REDIS_HOST', 'localhost'),
       port: this.configService.get<number>('REDIS_PORT', 6379),
-      keyPrefix: 'pet_club:', // Prefixo para todas as chaves
+      keyPrefix: 'pet_club:',
     });
 
-    this.defaultTTL = this.configService.get<number>('CACHE_TTL', 300); // 5 minutos por padrão
+    this.defaultTTL = this.configService.get<number>('CACHE_TTL', 300);
 
     this.redisClient.on('error', (error) => {
       this.logger.error('Redis connection error', error);
@@ -27,15 +27,13 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const data = await this.redisClient.get(key);
-    if (!data) {
-      return null;
-    }
-
     try {
+      const data = await this.redisClient.get(key);
+      if (!data) return null;
+
       return JSON.parse(data) as T;
     } catch (error) {
-      this.logger.error(`Error parsing Redis data for key ${key}`, error);
+      this.logger.error(`Erro ao obter chave do Redis (${key}):`, error);
       return null;
     }
   }
@@ -44,8 +42,9 @@ export class RedisService implements OnModuleDestroy {
     try {
       const data = JSON.stringify(value);
       await this.redisClient.set(key, data, 'EX', ttl);
+      this.logger.debug(`Cache salvo para chave: ${key}`);
     } catch (error) {
-      this.logger.error(`Error setting Redis data for key ${key}`, error);
+      this.logger.error(`Erro ao salvar no Redis (${key}):`, error);
     }
   }
 
@@ -54,11 +53,13 @@ export class RedisService implements OnModuleDestroy {
   }
 
   async delByPattern(pattern: string): Promise<void> {
-    const keys = await this.redisClient.keys(`pet_club:${pattern}`);
+    const keys = await this.redisClient.keys(pattern);
 
     if (keys.length > 0) {
       await this.redisClient.del(...keys);
-      this.logger.debug(`Deleted ${keys.length} keys matching pattern ${pattern}`);
+      this.logger.log(`Excluídas ${keys.length} chaves com o padrão "${pattern}"`);
+    } else {
+      this.logger.debug(`Nenhuma chave encontrada com o padrão "${pattern}"`);
     }
   }
 

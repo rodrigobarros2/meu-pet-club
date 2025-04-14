@@ -21,7 +21,6 @@ export class EmailService {
       },
     });
 
-    // Verificar a configuração do email ao iniciar
     this.verifyConnection();
   }
 
@@ -36,11 +35,10 @@ export class EmailService {
 
   async sendWelcomeEmail(to: string, name: string, password: string): Promise<boolean> {
     try {
-      const templatePath = path.resolve(__dirname, '../templates/welcome.hbs');
+      const templatePath = path.resolve('src/modules/email/templates/welcome.hbs');
       const templateSource = fs.readFileSync(templatePath, 'utf-8');
       const template = handlebars.compile(templateSource);
 
-      // Dados para o template
       const context = {
         name,
         email: to,
@@ -49,10 +47,8 @@ export class EmailService {
         year: new Date().getFullYear(),
       };
 
-      // Renderizar HTML com os dados
       const html = template(context);
 
-      // Enviar email
       const result = await this.transporter.sendMail({
         from: `"Meu Pet Club" <${this.configService.get<string>('EMAIL_FROM')}>`,
         to,

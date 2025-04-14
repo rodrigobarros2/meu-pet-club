@@ -1,5 +1,72 @@
-<h1>Bem-vindo, {{name}}!</h1>
-       <p>Seu email: {{email}}</p>
-       <p>Sua senha: {{password}}</p>
-       <p>Login: {{loginUrl}}</p>
-       <p>&copy; {{year}} Meu Pet Club</p>
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>Bem-vindo ao Meu Pet Club</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .header {
+        background-color: #4a90e2;
+        color: white;
+        padding: or without impacting readability. 20px;
+        text-align: center;
+        border-radius: 5px 5px 0 0;
+      }
+      .content {
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        padding: 20px;
+      }
+      .credentials {
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+      }
+      .button {
+        display: inline-block;
+        background-color: #4a90e2;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class='header'>
+      <h1>Bem-vindo ao Meu Pet Club!</h1>
+    </div>
+    <div class='content'>
+      <p>Olá, <strong>{{name}}</strong>!</p>
+
+      <p>Seu cadastro no Meu Pet Club foi concluído com sucesso. Estamos muito felizes em ter você conosco!</p>
+
+      <p>Abaixo estão suas informações de acesso. Por favor, guarde-as em local seguro:</p>
+
+      <div class='credentials'>
+        <p><strong>Email:</strong> {{email}}</p>
+        <p><strong>Senha:</strong> {{password}}</p>
+      </div>
+
+      <p>Recomendamos que você altere sua senha no primeiro acesso.</p>
+
+      <p>Para acessar o sistema, clique no botão abaixo:</p>
+
+      <a href='{{loginUrl}}' class='button'>Acessar Meu Pet Club</a>
+
+      <p>Se você tiver qualquer dúvida, não hesite em nos contatar.</p>
+
+      <p>Atenciosamente,<br />
+        Equipe Meu Pet Club</p>
+    </div>
+  </body>
+</html>

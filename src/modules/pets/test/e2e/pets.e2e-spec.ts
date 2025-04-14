@@ -6,9 +6,9 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../../../users/schemas/user.schema';
 import { Pet } from '../../schemas/pet.schema';
-import { MongoMemoryModule, closeInMemoryMongoConnection } from '../../../../config/mongo-memory-server.module';
+import { MongoMemoryModule, closeInMemoryMongoConnection } from '../../../../config/tests/mongo-memory-server.module';
 import { UserRole } from '../../../../common/enums/role..enum';
-import { TestAppModule } from '../../../../config/test-app.module';
+import { TestAppModule } from '../../../../config/tests/test-app.module';
 
 describe('PetsController (e2e)', () => {
   let app: INestApplication;
@@ -91,7 +91,7 @@ describe('PetsController (e2e)', () => {
   });
 
   describe('POST /pets', () => {
-    it('retorna 401 sem autenticação', () => {
+    it('deve retornar 401 sem autenticação', () => {
       return request(app.getHttpServer()).post('/pets').send(basePet).expect(401);
     });
 
@@ -108,11 +108,11 @@ describe('PetsController (e2e)', () => {
   });
 
   describe('GET /pets', () => {
-    it('retorna 401 sem token', () => {
+    it('deve retorna 401 sem token', () => {
       return request(app.getHttpServer()).get('/pets').expect(401);
     });
 
-    it('retorna pets do cliente', async () => {
+    it('deve retorna pets do cliente', async () => {
       await petModel.create({ ...basePet });
       const { body } = await request(app.getHttpServer())
         .get('/pets')
@@ -130,11 +130,11 @@ describe('PetsController (e2e)', () => {
       petId = pet._id.toString();
     });
 
-    it('retorna 401 sem autenticação', () => {
+    it('deve retorna 401 sem autenticação', () => {
       return request(app.getHttpServer()).get(`/pets/${petId}`).expect(401);
     });
 
-    it('cliente acessa seu pet', async () => {
+    it('deve cliente acessa seu pet', async () => {
       const { body } = await request(app.getHttpServer())
         .get(`/pets/${petId}`)
         .set('Authorization', `Bearer ${userToken}`)
@@ -143,7 +143,7 @@ describe('PetsController (e2e)', () => {
       expect(body._id).toBe(petId);
     });
 
-    it('admin acessa qualquer pet', async () => {
+    it('deve admin acessa qualquer pet', async () => {
       const { body } = await request(app.getHttpServer())
         .get(`/pets/${petId}`)
         .set('Authorization', `Bearer ${adminToken}`)
@@ -161,7 +161,7 @@ describe('PetsController (e2e)', () => {
       petId = pet._id.toString();
     });
 
-    it('cliente atualiza seu pet', async () => {
+    it('deve cliente atualiza seu pet', async () => {
       const { body } = await request(app.getHttpServer())
         .put(`/pets/${petId}`)
         .set('Authorization', `Bearer ${userToken}`)
@@ -174,7 +174,7 @@ describe('PetsController (e2e)', () => {
   });
 
   describe('DELETE /pets/:id', () => {
-    it('admin deleta qualquer pet', async () => {
+    it('deve admin deleta qualquer pet', async () => {
       const { body: newPet } = await request(app.getHttpServer())
         .post('/pets')
         .set('Authorization', `Bearer ${userToken}`)

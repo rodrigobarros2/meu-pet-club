@@ -5,7 +5,7 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { EmailService } from '../../service/email.service';
-import { closeInMemoryMongoConnection, MongoMemoryModule } from '../../../../config/mongo-memory-server.module';
+import { closeInMemoryMongoConnection, MongoMemoryModule } from '../../../../config/tests/mongo-memory-server.module';
 
 describe('EmailService (e2e)', () => {
   let app: INestApplication;
@@ -43,19 +43,6 @@ describe('EmailService (e2e)', () => {
 
     emailService = moduleFixture.get<EmailService>(EmailService);
     configService = moduleFixture.get<ConfigService>(ConfigService);
-
-    if (!fs.existsSync(TEMPLATE_DIR)) {
-      fs.mkdirSync(TEMPLATE_DIR, { recursive: true });
-    }
-
-    fs.writeFileSync(
-      TEMPLATE_PATH,
-      `<h1>Bem-vindo, {{name}}!</h1>
-       <p>Seu email: {{email}}</p>
-       <p>Sua senha: {{password}}</p>
-       <p>Login: {{loginUrl}}</p>
-       <p>&copy; {{year}} Meu Pet Club</p>`,
-    );
   });
 
   afterAll(async () => {

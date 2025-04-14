@@ -7,14 +7,18 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: false, // Desativa COOP temporariamente
+    }),
+  );
   app.enableCors();
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Remove propriedades não decoradas
-      forbidNonWhitelisted: true, // Rejeita requisições com propriedades não decoradas
-      transform: true, // Transforma dados para o tipo correto
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
@@ -33,7 +37,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  await app.listen(3000);
+  await app.listen(3333);
 }
 
 bootstrap().catch((error) => {

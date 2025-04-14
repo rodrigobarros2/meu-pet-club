@@ -5,8 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { getModelToken, getConnectionToken } from '@nestjs/mongoose';
 import { Model, Connection } from 'mongoose';
 import { User } from '../../../users/schemas/user.schema';
-import { closeInMemoryMongoConnection, MongoMemoryModule } from '../../../../config/mongo-memory-server.module';
-import { TestAppModule } from '../../../../config/test-app.module';
+import { closeInMemoryMongoConnection, MongoMemoryModule } from '../../../../config/tests/mongo-memory-server.module';
+import { TestAppModule } from '../../../../config/tests/test-app.module';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;

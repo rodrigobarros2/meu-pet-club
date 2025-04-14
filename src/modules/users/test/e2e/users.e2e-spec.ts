@@ -5,9 +5,9 @@ import * as bcrypt from 'bcrypt';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../../../users/schemas/user.schema';
-import { MongoMemoryModule, closeInMemoryMongoConnection } from '../../../../config/mongo-memory-server.module';
+import { MongoMemoryModule, closeInMemoryMongoConnection } from '../../../../config/tests/mongo-memory-server.module';
 import { UserRole } from '../../../../common/enums/role..enum';
-import { TestAppModule } from '../../../../config/test-app.module';
+import { TestAppModule } from '../../../../config/tests/test-app.module';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -33,7 +33,6 @@ describe('UsersController (e2e)', () => {
     },
   };
 
-  // Função de login para obter tokens
   const login = async (email: string, password: string): Promise<string> => {
     const res = await request(app.getHttpServer()).post('/auth/login').send({ email, password });
     return res.body.access_token;
@@ -48,14 +47,13 @@ describe('UsersController (e2e)', () => {
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     userModel = moduleFixture.get<Model<User>>(getModelToken('User'));
 
-    // Limpar o banco de dados
     await userModel.deleteMany({});
 
-    // Cria os usuários diretamente no banco
     const adminUser = await userModel.create({
       ...testUsers.admin,
       password: await bcrypt.hash(testUsers.admin.password, 10),
     });
+
     adminId = adminUser._id.toString();
 
     const clientUser = await userModel.create({
@@ -66,7 +64,6 @@ describe('UsersController (e2e)', () => {
 
     await app.init();
 
-    // Obter tokens através da rota /auth/login
     adminToken = await login(testUsers.admin.email, testUsers.admin.password);
     clientToken = await login(testUsers.client.email, testUsers.client.password);
   });
@@ -90,8 +87,8 @@ describe('UsersController (e2e)', () => {
         .get('/users')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
+
       expect(Array.isArray(res.body)).toBe(true);
-      // Como já temos 2 usuários criados
       expect(res.body.length).toBeGreaterThanOrEqual(2);
     });
   });
@@ -150,7 +147,6 @@ describe('UsersController (e2e)', () => {
     });
 
     it('deve retornar conflito se o email já estiver registrado', async () => {
-      // Tenta criar novamente com o mesmo email
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${adminToken}`)

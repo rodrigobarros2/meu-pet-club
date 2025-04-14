@@ -38,12 +38,10 @@ export class AuthService {
     };
   }
 
-  // Ao deslogar, armazena o token no Set de tokens inválidos
   async logout(userId: string, token: string): Promise<void> {
     this.invalidTokens.add(token);
   }
 
-  // Verifica se o token está marcado como inválido
   isTokenInvalid(token: string): boolean {
     return this.invalidTokens.has(token);
   }
